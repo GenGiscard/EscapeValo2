@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opération Radianite - Escape Game Valorant</title>
+    <style>
+        :root {
+            --val-red: #ff4655;
+            --val-light: #ece8e1;
+            --val-dark: #0f1923;
+            --tech-green: #00ffcc;
+        }
+        body { 
+            margin: 0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--val-dark);
+            color: var(--val-light);
+            overflow: hidden;
+            user-select: none;
+        }
+        #game-container { 
+            position: relative; 
+            width: 100vw; 
+            height: 100vh; 
+            background-size: cover; 
+            background-position: center; 
+            transition: background-image 0.5s ease-in-out; 
+            background-color: #111;
+        }
+        /* Overlay dégradé pour le style Visual Novel */
+        #game-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.8) 100%);
+            z-index: 1;
+        }
+        #character-sprite { 
+            position: absolute; 
+            bottom: 180px; 
+            left: 5%; 
+            height: 65vh; 
+            z-index: 2;
+            transition: opacity 0.3s;
+            display: none; /* Caché par défaut */
+        }
+        #dialog-box { 
+            position: absolute; 
+            bottom: 30px; 
+            left: 5%; 
+            right: 5%; 
+            height: 160px; 
+            background: rgba(15, 25, 35, 0.95); 
+            border: 2px solid var(--val-red);
+            border-radius: 4px; 
+            padding: 20px 30px; 
+            box-sizing: border-box; 
+            display: flex; 
+            flex-direction: column; 
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(255, 70, 85, 0.3);
+        }
+        #character-name { 
+            font-weight: 800; 
+            color: var(--val-red); 
+            font-size: 1.4em; 
+            margin-bottom: 12px; 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        #dialog-text { 
+            font-size: 1.2em; 
+            flex-grow: 1; 
+            line-height: 1.5;
+            font-style: normal;
+        }
+        /* Style pour les descriptions d'action en italique jaune */
+        .action-text { font-style: italic; color: #ffeb3b; }
+
+        #next-btn { 
+            align-self: flex-end; 
+            background: var(--val-red); 
+            color: var(--val-light); 
+            border: none; 
+            padding: 10px 25px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 1.1em;
+            border-radius: 2px; 
+            text-transform: uppercase;
+            transition: background 0.2s;
+        }
+        #next-btn:hover { background: #ff5866; }
+        
+        #puzzle-ui { 
+            display: none; 
+            background: rgba(15, 25, 35, 0.95); 
+            position: absolute; 
+            top: 10%; 
+            left: 15%; 
+            right: 15%; 
+            bottom: 220px; 
+            padding: 40px; 
+            border: 2px solid var(--tech-green); 
+            border-radius: 4px; 
+            overflow-y: auto;
+            z-index: 5;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
+        }
+        #puzzle-title {
+            color: var(--tech-green);
+            font-size: 2em;
+            margin-top: 0;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(0,255,204,0.3);
+            padding-bottom: 10px;
+        }
+        #puzzle-desc { font-size: 1.2em; line-height: 1.6; margin-bottom: 30px; }
+        .input-group { display: flex; gap: 15px; align-items: center; }
+        #puzzle-input { 
+            padding: 12px; 
+            font-size: 1.2em; 
+            width: 220px; 
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--tech-green);
+            color: var(--tech-green);
+            border-radius: 2px;
+            font-family: monospace;
+        }
+        #submit-btn {
+            background: var(--tech-green); 
+            color: var(--val-dark); 
+            border: none; 
+            padding: 12px 25px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 1.1em;
+            border-radius: 2px; 
+            text-transform: uppercase;
+        }
+        #submit-btn:hover { background: #33ffdb; }
+        #error-msg { color: var(--val-red); margin-top: 15px; font-weight: bold; display: none; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <img id="character-sprite" src="" alt="Character">
+    
+    <div id="puzzle-ui">
+        <h2 id="puzzle-title">Titre</h2>
+        <div id="puzzle-desc">Description</div>
+        <div class="input-group">
+            <input type="text" id="puzzle-input" placeholder="Entrer le code...">
+            <button id="submit-btn" onclick="checkPuzzle()">Valider</button>
+        </div>
+        <div id="error-msg">Code incorrect. Recalculez !</div>
+    </div>
+
+    <div id="dialog-box">
+        <div id="character-name">Nom</div>
+        <div id="dialog-text">Texte</div>
+        <button id="next-btn" onclick="nextScene()">Suivant</button>
+    </div>
+</div>
+
+<script>
+    // Configuration des noms de fichiers images attendus
+    // Assure-toi que tes fichiers sur GitHub ont EXACTEMENT ces noms (attention aux majuscules/minuscules)
+    const images = {
+        bg_intro: 'bg_intro.jpg',
+        bg_porte: 'bg_porte.jpg',
+        bg_couloir: 'bg_couloir.jpg',
+        bg_gaz: 'bg_gaz.jpg',
+        bg_eboulement: 'bg_eboulement.jpg',
+        bg_spike: 'bg_spike.jpg',
+        bg_victoire: 'bg_victoire.jpg',
+        
+        char_brimstone: 'char_brimstone.png',
+        char_ami1: 'char_ami1.png',
+        char_ami2: 'char_ami2.png',
+        char_ami3: 'char_ami3.png',
+        char_ami4: 'char_ami4.png',
+        char_ami5: 'char_ami5.png',
+
+        action_1: 'action_1.jpg', // Le tir de Sova
+        action_2: 'action_2.jpg', // La soudure de Killjoy
+        action_3: 'action_3.jpg', // La valve de Viper
+        action_4: 'action_4.jpg', // Le levier de Breach
+        action_5: 'action_5.jpg'  // Le piratage final
+    };
+
+    // Structure de l'histoire (Visual Novel + Puzzles + Actions)
+    const story = [
+        { type: 'dialog', speaker: 'Brimstone', text: 'Écoutez-moi bien, Escouade Alpha. Kingdom a planté un Spike expérimental sur Bind. Vous êtes nos meilleurs ingénieurs. C\'est à vous de jouer.', bg: images.bg_intro, char: images.char_brimstone },
+        
+        // --- ÉTAPE 1 : TIR ---
+        { type: 'dialog', speaker: '[Ami 1]', text: 'Je suis en position devant les portes du Site B. C\'est verrouillé. Le bouton d\'urgence est à 40 mètres en hauteur.', bg: images.bg_porte, char: images.char_ami1 },
+        { type: 'dialog', speaker: '[Ami 1]', text: 'Mon arc est prêt, mais le capteur de tension est déréglé. Aidez-moi à calculer la vitesse initiale exacte pour frapper la cible.', bg: images.bg_porte, char: images.char_ami1 },
+        { 
+            type: 'puzzle', 
+            title: 'Étape 1 : Le Tir (Cinématique)', 
+            desc: 'La cible est à d = 40 m sur le même plan. Angle de tir θ = 45°. g = 10 m/s².<br>On néglige les frottements.<br><br>Formule de la portée : d = (v₀² * sin(2θ)) / g<br><br>Calculez v₀ (en m/s).',
+            answer: '20',
+            bg: images.bg_porte
+        },
+        // Scène d'action plein écran après réussite
+        { type: 'dialog', speaker: '[Ami 1]', text: '<span class="action-text">*La flèche d\'énergie foudroie le ciel et frappe le bouton d\'urgence avec une précision chirurgicale.*</span> C\'est ouvert ! Entrez !', bg: images.action_1 },
+        
+        // --- ÉTAPE 2 : PIÈGE ---
+        { type: 'dialog', speaker: '[Ami 2]', text: 'Bien tiré ! Laissez-moi passer devant... Attendez, il y a un panneau d\'alarme de Killjoy actif ici.', bg: images.bg_couloir, char: images.char_ami2 },
+        { type: 'dialog', speaker: '[Ami 2]', text: 'Si je coupe le mauvais fil, la tourelle nous aligne. Je dois trouver la résistance équivalente pour court-circuiter le système.', bg: images.bg_couloir, char: images.char_ami2 },
+        { 
+            type: 'puzzle', 
+            title: 'Étape 2 : Le Piège (Électronique)', 
+            desc: 'Le circuit a 3 résistances.<br>R1 (60 Ω) et R2 (30 Ω) sont branchées en <b>parallèle</b>.<br>L\'ensemble est branché en <b>série</b> avec R3 (20 Ω).<br><br>Calculez la résistance équivalente totale Req (en Ohms).',
+            answer: '40',
+            bg: images.bg_couloir
+        },
+        // Scène d'action plein écran après réussite
+        { type: 'dialog', speaker: '[Ami 2]', text: '<span class="action-text">*Le fer à souder crépite. Les composants grillent l\'un après l\'autre dans une petite gerbe d\'étincelles.*</span> Système désactivé. On avance !', bg: images.action_2 },
+
+        // --- ÉTAPE 3 : GAZ (NOUVEAU) ---
+        { type: 'dialog', speaker: '[Ami 3]', text: 'Le couloir est libre ! Mais... *toux* Viper a déclenché son gaz toxique ! La salle des serveurs surchauffe !', bg: images.bg_gaz, char: images.char_ami3 },
+        { type: 'dialog', speaker: '[Ami 3]', text: 'Vite, je dois activer la ventilation d\'urgence en recalibrant la pression de la cuve pneumatique.', bg: images.bg_gaz, char: images.char_ami3 },
+        { 
+            type: 'puzzle', 
+            title: 'Étape 3 : La Ventilation (Thermodynamique)', 
+            desc: 'La cuve a un volume V = 0.5 m³. Elle contient n = 10 moles de gaz à T = 300 K.<br>Constante des gaz R = 8.3 J/(mol.K).<br><br>Formule : PV = nRT.<br>Calculez la Pression P en Pascal, puis <b>divisez par 100</b> pour obtenir le code.',
+            answer: '498',
+            bg: images.bg_gaz
+        },
+        // Scène d'action plein écran après réussite
+        { type: 'dialog', speaker: '[Ami 3]', text: '<span class="action-text">*Force de tout son poids sur la valve brûlante. Un sifflement strident retentit.*</span> La pression s\'échappe ! Le gaz se dissipe.', bg: images.action_3 },
+
+        // --- ÉTAPE 4 : ÉBOULEMENT (NOUVEAU) ---
+        { type: 'dialog', speaker: '[Ami 4]', text: 'Le gaz s\'en va. Bon boulot ! Mince, l\'explosion d\'une conduite a provoqué un éboulement.', bg: images.bg_eboulement, char: images.char_ami4 },
+        { type: 'dialog', speaker: '[Ami 4]', text: 'Une dalle de béton bloque le Spike. Je vais utiliser cette poutre en fer comme levier. Calculez la force que je dois appliquer.', bg: images.bg_eboulement, char: images.char_ami4 },
+        { 
+            type: 'puzzle', 
+            title: 'Étape 4 : L\'Éboulement (Mécanique/Statique)', 
+            desc: 'Poids de la dalle P = 1500 N.<br>Bras de levier côté dalle d1 = 0.4 m.<br>Mon bras de levier d2 = 2.4 m.<br><br>À l\'équilibre : F × d2 = P × d1.<br><br>Quelle force F (en Newton) doit être appliquée ?',
+            answer: '250',
+            bg: images.bg_eboulement
+        },
+        // Scène d'action plein écran après réussite
+        { type: 'dialog', speaker: '[Ami 4]', text: '<span class="action-text">*Les bras cybernétiques grincent, la poutre plie, et l\'énorme bloc de béton se soulève lentement dans un nuage de poussière.*</span> Vite, passez pendant que je la tiens !', bg: images.action_4 },
+
+        // --- ÉTAPE 5 : DÉSAMORÇAGE ---
+        { type: 'dialog', speaker: '[Ami 5]', text: 'La voie est libre ! Le Spike est juste là. Je connecte mon terminal au noyau.', bg: images.bg_spike, char: images.char_ami5 },
+        { type: 'dialog', speaker: '[Ami 5]', text: 'L\'interface est cryptée. Il me faut la conversion décimale de ce code binaire pour couper le fil principal.', bg: images.bg_spike, char: images.char_ami5 },
+        { 
+            type: 'puzzle', 
+            title: 'Étape 5 : Le Désamorçage (Logique Numérique)', 
+            desc: 'L\'ordinateur affiche cette séquence binaire : <b>110010</b><br><br>Convertissez ce nombre binaire (base 2) en nombre décimal (base 10).',
+            answer: '50',
+            bg: images.bg_spike
+        },
+        // Scène d'action plein écran après réussite
+        { type: 'dialog', speaker: '[Ami 5]', text: '<span class="action-text">*Les doigts volent sur le clavier holographique. Le code final est envoyé au noyau.*</span> Noyau désactivé !', bg: images.action_5 },
+
+        // --- FIN ---
+        { type: 'dialog', speaker: 'Brimstone', text: 'Spike désamorcé. Vous avez sauvé le Site B. Excellent travail, Escouade Alpha. Mission accomplie. Rentrez à la base.', bg: images.bg_victoire, char: images.char_brimstone }
+    ];
+
+    let currentScene = 0;
+
+    // Fonction principale pour afficher une scène
+    function renderScene() {
+        const scene = story[currentScene];
+        const container = document.getElementById('game-container');
+        const sprite = document.getElementById('character-sprite');
+        const dialogBox = document.getElementById('dialog-box');
+        const puzzleUi = document.getElementById('puzzle-ui');
+
+        // Gestion du fond
+        if(scene.bg) {
+            container.style.backgroundImage = `url('${scene.bg}')`;
+        } else {
+            container.style.backgroundImage = 'none';
+        }
+
+        if(scene.type === 'dialog') {
+            // Mode Dialogue/Visual Novel
+            dialogBox.style.display = 'flex';
+            puzzleUi.style.display = 'none';
+            
+            document.getElementById('character-name').innerText = scene.speaker;
+            document.getElementById('dialog-text').innerHTML = scene.text;
+            
+            // Gestion du Sprite personnage
+            if(scene.char) {
+                // Si une image de perso est définie, on l'affiche (discussion)
+                sprite.src = scene.char;
+                sprite.style.display = 'block';
+                sprite.style.opacity = '1';
+            } else {
+                // Sinon on le cache (c'est une scène d'action plein écran)
+                sprite.style.display = 'none';
+                sprite.style.opacity = '0';
+            }
+        } 
+        else if (scene.type === 'puzzle') {
+            // Mode Énigme/Hacking
+            dialogBox.style.display = 'none';
+            puzzleUi.style.display = 'block';
+            sprite.style.display = 'none'; // Cache le perso pendant l'énigme
+            
+            document.getElementById('puzzle-title').innerHTML = scene.title;
+            document.getElementById('puzzle-desc').innerHTML = scene.desc;
+            document.getElementById('puzzle-input').value = ''; // Reset input
+            document.getElementById('error-msg').style.display = 'none'; // Cache erreur
+            document.getElementById('puzzle-input').focus(); // Focus automatique
+        }
+    }
+
+    // Fonction pour passer à la scène suivante
+    function nextScene() {
+        if(currentScene < story.length - 1) {
+            currentScene++;
+            renderScene();
+        } else {
+            // Fin du jeu
+            alert('Félicitations Agent ! Vous avez terminé l\'Opération Radianite.');
+            // Optionnel : recharger le jeu
+            // location.reload();
+        }
+    }
+
+    // Fonction pour vérifier la réponse à une énigme
+    function checkPuzzle() {
+        const scene = story[currentScene];
+        const input = document.getElementById('puzzle-input').value.trim();
+        const errorMsg = document.getElementById('error-msg');
+        
+        // Vérification de la réponse (sensible à la casse, espace enlever)
+        if(input === scene.answer) {
+            errorMsg.style.display = 'none';
+            nextScene(); // Passe à la scène d'action suivante
+        } else {
+            // Affichage message d'erreur
+            errorMsg.style.display = 'block';
+            // Petit effet de secousse optionnel
+            const puzzleUi = document.getElementById('puzzle-ui');
+            puzzleUi.style.animation = 'shake 0.3s';
+            setTimeout(() => puzzleUi.style.animation = '', 300);
+        }
+    }
+
+    // Permet de valider l'énigme avec la touche 'Entrée'
+    document.getElementById('puzzle-input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            checkPuzzle();
+        }
+    });
+
+    // CSS pour l'effet de secousse en cas d'erreur
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes shake {
+            0% { transform: translate(1px, 1px); }
+            50% { transform: translate(-1px, -1px); }
+            100% { transform: translate(1px, -1px); }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Démarrage du jeu
+    renderScene();
+</script>
+</body>
+</html>
