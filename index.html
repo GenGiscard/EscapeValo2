@@ -28,6 +28,17 @@
             transition: background-image 0.5s ease-in-out; 
             background-color: #111;
         }
+        /* Calque flou affiché derrière les fonds verticaux (mode contain) */
+        #bg-blur {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-size: cover;
+            background-position: center;
+            filter: blur(28px) brightness(0.45);
+            transform: scale(1.15);
+            z-index: 0;
+            display: none;
+        }
         /* Overlay dégradé pour le style Visual Novel */
         #game-container::before {
             content: '';
@@ -146,6 +157,7 @@
 <body>
 
 <div id="game-container">
+    <div id="bg-blur"></div>
     <img id="character-sprite" src="" alt="Character">
     
     <div id="puzzle-ui">
@@ -196,8 +208,8 @@
         { type: 'dialog', speaker: 'Brimstone', text: 'Écoutez-moi bien, Escouade Alpha. Kingdom a planté un Spike expérimental sur Bind. Vous êtes nos meilleurs ingénieurs. C\'est à vous de jouer.', bg: images.bg_intro, char: images.char_brimstone },
         
         // --- ÉTAPE 1 : TIR ---
-        { type: 'dialog', speaker: '[Ami 1]', text: 'Je suis en position devant les portes du Site B. C\'est verrouillé. Le bouton d\'urgence est à 40 mètres en hauteur.', bg: images.bg_porte, char: images.char_ami1 },
-        { type: 'dialog', speaker: '[Ami 1]', text: 'Mon arc est prêt, mais le capteur de tension est déréglé. Aidez-moi à calculer la vitesse initiale exacte pour frapper la cible.', bg: images.bg_porte, char: images.char_ami1 },
+        { type: 'dialog', speaker: 'Paul', text: 'Je suis en position devant les portes du Site B. C\'est verrouillé. Le bouton d\'urgence est à 40 mètres en hauteur.', bg: images.bg_porte, char: images.char_ami1 },
+        { type: 'dialog', speaker: 'Paul', text: 'Mon arc est prêt, mais le capteur de tension est déréglé. Aidez-moi à calculer la vitesse initiale exacte pour frapper la cible.', bg: images.bg_porte, char: images.char_ami1 },
         { 
             type: 'puzzle', 
             title: 'Étape 1 : Le Tir (Cinématique)', 
@@ -206,11 +218,11 @@
             bg: images.bg_porte
         },
         // Scène d'action plein écran après réussite
-        { type: 'dialog', speaker: '[Ami 1]', text: '<span class="action-text">*La flèche d\'énergie foudroie le ciel et frappe le bouton d\'urgence avec une précision chirurgicale.*</span> C\'est ouvert ! Entrez !', bg: images.action_1 },
+        { type: 'dialog', speaker: 'Paul', text: '<span class="action-text">*La flèche d\'énergie foudroie le ciel et frappe le bouton d\'urgence avec une précision chirurgicale.*</span> C\'est ouvert ! Entrez !', bg: images.action_1 },
         
         // --- ÉTAPE 2 : PIÈGE ---
-        { type: 'dialog', speaker: '[Ami 2]', text: 'Bien tiré ! Laissez-moi passer devant... Attendez, il y a un panneau d\'alarme de Killjoy actif ici.', bg: images.bg_couloir, char: images.char_ami2 },
-        { type: 'dialog', speaker: '[Ami 2]', text: 'Si je coupe le mauvais fil, la tourelle nous aligne. Je dois trouver la résistance équivalente pour court-circuiter le système.', bg: images.bg_couloir, char: images.char_ami2 },
+        { type: 'dialog', speaker: 'Elyes', text: 'Bien tiré ! Laissez-moi passer devant... Attendez, il y a un panneau d\'alarme de Killjoy actif ici.', bg: images.bg_couloir, char: images.char_ami2 },
+        { type: 'dialog', speaker: 'Elyes', text: 'Si je coupe le mauvais fil, la tourelle nous aligne. Je dois trouver la résistance équivalente pour court-circuiter le système.', bg: images.bg_couloir, char: images.char_ami2 },
         { 
             type: 'puzzle', 
             title: 'Étape 2 : Le Piège (Électronique)', 
@@ -219,11 +231,11 @@
             bg: images.bg_couloir
         },
         // Scène d'action plein écran après réussite
-        { type: 'dialog', speaker: '[Ami 2]', text: '<span class="action-text">*Le fer à souder crépite. Les composants grillent l\'un après l\'autre dans une petite gerbe d\'étincelles.*</span> Système désactivé. On avance !', bg: images.action_2 },
+        { type: 'dialog', speaker: 'Elyes', text: '<span class="action-text">*Le fer à souder crépite. Les composants grillent l\'un après l\'autre dans une petite gerbe d\'étincelles.*</span> Système désactivé. On avance !', bg: images.action_2, fit: 'contain' },
 
         // --- ÉTAPE 3 : GAZ (NOUVEAU) ---
-        { type: 'dialog', speaker: '[Ami 3]', text: 'Le couloir est libre ! Mais... *toux* Viper a déclenché son gaz toxique ! La salle des serveurs surchauffe !', bg: images.bg_gaz, char: images.char_ami3 },
-        { type: 'dialog', speaker: '[Ami 3]', text: 'Vite, je dois activer la ventilation d\'urgence en recalibrant la pression de la cuve pneumatique.', bg: images.bg_gaz, char: images.char_ami3 },
+        { type: 'dialog', speaker: 'Gabin', text: 'Le couloir est libre ! Mais... *toux* Viper a déclenché son gaz toxique ! La salle des serveurs surchauffe !', bg: images.bg_gaz, char: images.char_ami3 },
+        { type: 'dialog', speaker: 'Gabin', text: 'Vite, je dois activer la ventilation d\'urgence en recalibrant la pression de la cuve pneumatique.', bg: images.bg_gaz, char: images.char_ami3 },
         { 
             type: 'puzzle', 
             title: 'Étape 3 : La Ventilation (Thermodynamique)', 
@@ -232,11 +244,11 @@
             bg: images.bg_gaz
         },
         // Scène d'action plein écran après réussite
-        { type: 'dialog', speaker: '[Ami 3]', text: '<span class="action-text">*Force de tout son poids sur la valve brûlante. Un sifflement strident retentit.*</span> La pression s\'échappe ! Le gaz se dissipe.', bg: images.action_3 },
+        { type: 'dialog', speaker: 'Gabin', text: '<span class="action-text">*Force de tout son poids sur la valve brûlante. Un sifflement strident retentit.*</span> La pression s\'échappe ! Le gaz se dissipe.', bg: images.action_3 },
 
         // --- ÉTAPE 4 : ÉBOULEMENT (NOUVEAU) ---
-        { type: 'dialog', speaker: '[Ami 4]', text: 'Le gaz s\'en va. Bon boulot ! Mince, l\'explosion d\'une conduite a provoqué un éboulement.', bg: images.bg_eboulement, char: images.char_ami4 },
-        { type: 'dialog', speaker: '[Ami 4]', text: 'Une dalle de béton bloque le Spike. Je vais utiliser cette poutre en fer comme levier. Calculez la force que je dois appliquer.', bg: images.bg_eboulement, char: images.char_ami4 },
+        { type: 'dialog', speaker: 'Maël', text: 'Le gaz s\'en va. Bon boulot ! Mince, l\'explosion d\'une conduite a provoqué un éboulement.', bg: images.bg_eboulement, char: images.char_ami4 },
+        { type: 'dialog', speaker: 'Maël', text: 'Une dalle de béton bloque le Spike. Je vais utiliser cette poutre en fer comme levier. Calculez la force que je dois appliquer.', bg: images.bg_eboulement, char: images.char_ami4 },
         { 
             type: 'puzzle', 
             title: 'Étape 4 : L\'Éboulement (Mécanique/Statique)', 
@@ -245,11 +257,11 @@
             bg: images.bg_eboulement
         },
         // Scène d'action plein écran après réussite
-        { type: 'dialog', speaker: '[Ami 4]', text: '<span class="action-text">*Les bras cybernétiques grincent, la poutre plie, et l\'énorme bloc de béton se soulève lentement dans un nuage de poussière.*</span> Vite, passez pendant que je la tiens !', bg: images.action_4 },
+        { type: 'dialog', speaker: 'Maël', text: '<span class="action-text">*Les bras cybernétiques grincent, la poutre plie, et l\'énorme bloc de béton se soulève lentement dans un nuage de poussière.*</span> Vite, passez pendant que je la tiens !', bg: images.action_4 },
 
         // --- ÉTAPE 5 : DÉSAMORÇAGE ---
-        { type: 'dialog', speaker: '[Ami 5]', text: 'La voie est libre ! Le Spike est juste là. Je connecte mon terminal au noyau.', bg: images.bg_spike, char: images.char_ami5 },
-        { type: 'dialog', speaker: '[Ami 5]', text: 'L\'interface est cryptée. Il me faut la conversion décimale de ce code binaire pour couper le fil principal.', bg: images.bg_spike, char: images.char_ami5 },
+        { type: 'dialog', speaker: 'Timothé', text: 'La voie est libre ! Le Spike est juste là. Je connecte mon terminal au noyau.', bg: images.bg_spike, char: images.char_ami5 },
+        { type: 'dialog', speaker: 'Timothé', text: 'L\'interface est cryptée. Il me faut la conversion décimale de ce code binaire pour couper le fil principal.', bg: images.bg_spike, char: images.char_ami5 },
         { 
             type: 'puzzle', 
             title: 'Étape 5 : Le Désamorçage (Logique Numérique)', 
@@ -258,7 +270,7 @@
             bg: images.bg_spike
         },
         // Scène d'action plein écran après réussite
-        { type: 'dialog', speaker: '[Ami 5]', text: '<span class="action-text">*Les doigts volent sur le clavier holographique. Le code final est envoyé au noyau.*</span> Noyau désactivé !', bg: images.action_5 },
+        { type: 'dialog', speaker: 'Timothé', text: '<span class="action-text">*Les doigts volent sur le clavier holographique. Le code final est envoyé au noyau.*</span> Noyau désactivé !', bg: images.action_5 },
 
         // --- FIN ---
         { type: 'dialog', speaker: 'Brimstone', text: 'Spike désamorcé. Vous avez sauvé le Site B. Excellent travail, Escouade Alpha. Mission accomplie. Rentrez à la base.', bg: images.bg_victoire, char: images.char_brimstone }
@@ -275,10 +287,22 @@
         const puzzleUi = document.getElementById('puzzle-ui');
 
         // Gestion du fond
+        const blur = document.getElementById('bg-blur');
         if(scene.bg) {
             container.style.backgroundImage = `url('${scene.bg}')`;
+            if(scene.fit === 'contain') {
+                // Image verticale : on dézoome pour voir le personnage en entier
+                container.style.backgroundSize = 'contain';
+                container.style.backgroundRepeat = 'no-repeat';
+                blur.style.backgroundImage = `url('${scene.bg}')`;
+                blur.style.display = 'block';
+            } else {
+                container.style.backgroundSize = 'cover';
+                blur.style.display = 'none';
+            }
         } else {
             container.style.backgroundImage = 'none';
+            blur.style.display = 'none';
         }
 
         if(scene.type === 'dialog') {
