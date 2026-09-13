@@ -39,6 +39,16 @@
             z-index: 0;
             display: none;
         }
+        /* Image nette, posée AU-DESSUS du calque flou */
+        #bg-sharp {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 0;
+            display: none;
+        }
         /* Overlay dégradé pour le style Visual Novel */
         #game-container::before {
             content: '';
@@ -240,6 +250,7 @@
 
 <div id="game-container">
     <div id="bg-blur"></div>
+    <div id="bg-sharp"></div>
     <img id="character-sprite" src="" alt="Character">
 
     <div id="puzzle-ui">
@@ -873,20 +884,25 @@
 
         // Gestion du fond
         const blur = document.getElementById('bg-blur');
+        const sharp = document.getElementById('bg-sharp');
         if (scene.bg) {
-            container.style.backgroundImage = `url('${scene.bg}')`;
             if (scene.fit === 'contain') {
-                container.style.backgroundSize = 'contain';
-                container.style.backgroundRepeat = 'no-repeat';
+                // Image verticale : flou en remplissage, image nette par-dessus
+                container.style.backgroundImage = 'none';
                 blur.style.backgroundImage = `url('${scene.bg}')`;
+                sharp.style.backgroundImage = `url('${scene.bg}')`;
                 blur.style.display = 'block';
+                sharp.style.display = 'block';
             } else {
+                container.style.backgroundImage = `url('${scene.bg}')`;
                 container.style.backgroundSize = 'cover';
                 blur.style.display = 'none';
+                sharp.style.display = 'none';
             }
         } else {
             container.style.backgroundImage = 'none';
             blur.style.display = 'none';
+            sharp.style.display = 'none';
         }
 
         if (scene.type === 'dialog') {
